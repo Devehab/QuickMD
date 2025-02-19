@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Markdown to PDF Converter</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+  <script src="jspdf.umd.min.js"></script>
+  <script src="html2canvas.min.js"></script>
+  <style>
+    body {
+      width: 600px;
+      min-height: 600px;
+    }
+    .dark {
+      background-color: #1a1a1a;
+      color: #ffffff;
+    }
+    .dark .bg-white {
+      background-color: #2d2d2d !important;
+    }
+    .dark .bg-gray-50 {
+      background-color: #1a1a1a !important;
+    }
+    .dark .text-gray-700 {
+      color: #e0e0e0 !important;
+    }
+    .dark .text-gray-800 {
+      color: #ffffff !important;
+    }
+    .dark .border-gray-300 {
+      border-color: #404040 !important;
+    }
+    .dark textarea {
+      background-color: #2d2d2d;
+      color: #ffffff;
+      border-color: #404040;
+    }
+    .dark .preview {
+      background-color: #2d2d2d !important;
+      color: #ffffff;
+    }
+    .dark #copyButton {
+      background-color: #404040;
+      color: #e0e0e0;
+    }
+    .dark #copyButton:hover {
+      background-color: #505050;
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+    .dark ::-webkit-scrollbar-track {
+      background: #2d2d2d;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #505050;
+    }
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: #606060;
+    }
+    /* Preview Styles */
+    .preview {
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    .preview h1 {
+      font-size: 1.8em;
+      margin: 0.8em 0;
+      font-weight: bold;
+    }
+    .preview h2 {
+      font-size: 1.5em;
+      margin: 0.6em 0;
+      font-weight: bold;
+    }
+    .preview h3 {
+      font-size: 1.3em;
+      margin: 0.5em 0;
+      font-weight: bold;
+    }
+    .preview p {
+      margin: 1em 0;
+    }
+    .preview ul {
+      list-style-type: disc;
+      margin: 1em 0;
+      padding-left: 2em;
+    }
+    .preview ol {
+      list-style-type: decimal;
+      margin: 1em 0;
+      padding-left: 2em;
+    }
+    .preview ul ul {
+      list-style-type: circle;
+    }
+    .preview ul ul ul {
+      list-style-type: square;
+    }
+    .preview ol ol {
+      list-style-type: lower-alpha;
+    }
+    .preview ol ol ol {
+      list-style-type: lower-roman;
+    }
+    .preview li {
+      margin: 0.3em 0;
+      display: list-item;
+    }
+    .preview code {
+      background-color: #f0f0f0;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+      font-family: monospace;
+    }
+    .dark .preview code {
+      background-color: #3a3a3a;
+    }
+    .preview pre {
+      background-color: #f5f5f5;
+      padding: 1em;
+      border-radius: 5px;
+      overflow-x: auto;
+      margin: 1em 0;
+    }
+    .dark .preview pre {
+      background-color: #333;
+    }
+    .preview blockquote {
+      border-left: 4px solid #ddd;
+      padding-left: 1em;
+      margin: 1em 0;
+      color: #666;
+    }
+    .dark .preview blockquote {
+      border-left-color: #555;
+      color: #aaa;
+    }
+    .preview table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 1em 0;
+    }
+    .preview th, .preview td {
+      border: 1px solid #ddd;
+      padding: 0.5em;
+    }
+    .dark .preview th, .dark .preview td {
+      border-color: #444;
+    }
+    .preview th {
+      background-color: #f5f5f5;
+      font-weight: bold;
+    }
+    .dark .preview th {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body class="p-6">
+  <div class="container mx-auto space-y-6">
+    <div class="flex items-center justify-between mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Markdown to RTF Converter</h2>
+      <div class="flex items-center space-x-4">
+        <button id="directionToggle" class="p-3 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Toggle Text Direction">
+          <i class="fas fa-align-right"></i>
+        </button>
+        <button id="themeToggle" class="p-3 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+          <i class="fas fa-moon text-xl"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="bg-white rounded-xl shadow-lg p-6 space-y-6">
+      <div>
+        <label for="markdownInput" class="block text-base font-medium text-gray-700 mb-3">
+          <i class="fas fa-pen-to-square mr-2"></i>Markdown Input
+        </label>
+        <textarea 
+          id="markdownInput" 
+          class="w-full h-56 p-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-base"
+          placeholder="Enter your Markdown text here..."
+          dir="auto"
+          spellcheck="false"></textarea>
+      </div>
+
+      <div class="relative">
+        <div class="flex items-center justify-between mb-3">
+          <label class="block text-base font-medium text-gray-700">
+            <i class="fas fa-eye mr-2"></i>Preview
+          </label>
+          <button 
+            id="copyButton" 
+            class="flex items-center px-3 py-1.5 text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            title="Copy formatted text">
+            <i class="fas fa-copy mr-2"></i>
+            Copy
+          </button>
+        </div>
+        <div id="preview" class="preview w-full min-h-[250px] max-h-[350px] p-5 bg-gray-50 border border-gray-300 rounded-xl overflow-y-auto" dir="auto"></div>
+      </div>
+    </div>
+
+    <div class="flex justify-end space-x-4">
+      <button 
+        id="convertButton"
+        class="flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-base font-medium">
+        <i class="fas fa-download mr-2"></i>
+        Convert and Download RTF
+      </button>
+      <button 
+        id="pdfButton"
+        class="flex items-center px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors text-base font-medium">
+        <i class="fas fa-file-pdf mr-2"></i>
+        Download PDF
+      </button>
+    </div>
+
+    <div id="notification" class="fixed bottom-6 right-6 transform scale-95 opacity-0 transition-all duration-200">
+      <div class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg">
+        <span id="notificationText"></span>
+      </div>
+    </div>
+  </div>
+  <script src="lib/marked.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
